@@ -8,12 +8,12 @@ import { useDebouncedCheck } from './use-debounce-check';
 
 export const inputSchema = (debouncedCheck: (value: string) => Promise<boolean>) =>
   v.objectAsync({
-    name: v.pipe(v.string(), v.minLength(1, '必須項目です')),
+    name: v.pipe(v.string(), v.minLength(1, 'This field is required')),
     email: v.pipeAsync(
       v.string(),
-      v.minLength(1, '必須項目です'),
-      v.email('正しいEmail形式で入力してください'),
-      v.checkAsync(debouncedCheck, 'このEmailは使用できません。')
+      v.minLength(1, 'This field is required'),
+      v.email('Please enter a valid email format'),
+      v.checkAsync(debouncedCheck, 'This email is not available')
     ),
   });
 
