@@ -25,7 +25,7 @@ export function useSignupForm() {
       method: 'GET',
     });
     const data = (await response.json()) as { result: boolean };
-    return data.result === true;
+    return data.result;
   };
 
   const { debouncedCheck } = useDebouncedCheck<string>(isInvalidEmail, {
