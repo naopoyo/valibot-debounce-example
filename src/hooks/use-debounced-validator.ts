@@ -83,8 +83,7 @@ export function useDebouncedValidator<T = string>(
   const { delay = 500, negate = false, defaultValue } = memoizedOptions;
 
   const [lastResult, setLastResult] = useState(false);
-  const lastValueRef = useRef<T | undefined>(defaultValue);
-  const lastResultRef = useRef(false);
+  const cacheRef = useRef(new Map<T, boolean>());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingResolversRef = useRef<Array<(result: boolean) => void>>([]);
   const pendingValueRef = useRef<T | undefined>(undefined);
@@ -98,18 +97,16 @@ export function useDebouncedValidator<T = string>(
     async (currentValue: T) => {
       try {
         const rawResult = await validate(currentValue);
-        const result = negate ? !rawResult : rawResult;
+        const result = negate ? !Boolean(rawResult) : Boolean(rawResult);
 
-        lastValueRef.current = currentValue;
-        lastResultRef.current = result;
+        cacheRef.current.set(currentValue, result);
         if (lastResult !== result) {
           setLastResult(result);
         }
         flushResolvers(result);
       } catch {
         const result = false;
-        lastValueRef.current = currentValue;
-        lastResultRef.current = result;
+        cacheRef.current.set(currentValue, result);
         if (lastResult !== result) {
           setLastResult(result);
         }
@@ -125,8 +122,8 @@ export function useDebouncedValidator<T = string>(
         return Promise.resolve(true);
       }
 
-      if (lastValueRef.current === value && timerRef.current === null) {
-        return Promise.resolve(lastResultRef.current);
+      if (cacheRef.current.has(value)) {
+        return Promise.resolve(cacheRef.current.get(value)!);
       }
 
       return new Promise<boolean>((resolve) => {
@@ -158,7 +155,7 @@ export function useDebouncedValidator<T = string>(
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
-      flushResolvers(lastResultRef.current);
+      flushResolvers(false);
     };
   }, []);
 
