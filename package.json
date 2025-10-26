@@ -8,7 +8,7 @@
     "format": "pnpm prettier && pnpm lint:fix",
     "format:package": "pnpm dlx sort-package-json",
     "lint": "eslint",
-    "lint:fix": "next lint --fix",
+    "lint:fix": "eslint --fix",
     "ncu": "pnpm dlx npm-check-updates",
     "prettier": "prettier --write --ignore-unknown .",
     "prettier:check": "prettier --check --ignore-unknown .",
