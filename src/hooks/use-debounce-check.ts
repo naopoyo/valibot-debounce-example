@@ -9,11 +9,11 @@ type Options<T> = {
 };
 
 /**
- * デバウンスされたチェッカ関数と最後の結果を返します。
+ * Returns a debounced checker function and the last result.
  *
  * check: (value) => Promise<boolean> | boolean
- * このフックは、呼び出されると `check` への呼び出しをデバウンスし、
- * チェック結果で解決する関数を返します。`negate` が true の場合、解決されたブール値が反転されます。
+ * This hook debounces calls to `check` and returns a function that resolves with the check result.
+ * If `negate` is true, the resolved boolean value is inverted.
  */
 export function useDebouncedCheck<T = string>(check: CheckFn<T>, options: Options<T> = {}) {
   const { delay = 500, negate = false, defaultValue = null } = options;
