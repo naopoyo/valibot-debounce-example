@@ -4,7 +4,7 @@ import { valibotResolver } from '@hookform/resolvers/valibot';
 import { useForm } from 'react-hook-form';
 import * as v from 'valibot';
 
-import { useDebouncedCheck } from './use-debounce-check';
+import { useDebouncedValidator } from './use-debounce-check';
 
 export const inputSchema = (debouncedCheck: (value: string) => Promise<boolean>) =>
   v.objectAsync({
@@ -28,7 +28,7 @@ export function useSignupForm() {
     return !data.result;
   };
 
-  const { debouncedCheck } = useDebouncedCheck<string>(isValidEmail, {
+  const { debouncedCheck } = useDebouncedValidator<string>(isValidEmail, {
     delay: 500,
   });
 
