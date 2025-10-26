@@ -6,7 +6,7 @@ export function SignupForm() {
   const form = useSignupForm();
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={form.handleSubmit((data) => console.log(data))}>
+    <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(() => alert('Submitted!'))}>
       <label className="flex flex-col gap-1">
         <span
           className={`
