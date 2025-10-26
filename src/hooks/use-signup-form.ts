@@ -6,14 +6,14 @@ import * as v from 'valibot';
 
 import { useDebouncedValidator } from './use-debounced-validator';
 
-export const inputSchema = (debouncedCheck: (value: string) => Promise<boolean>) =>
+export const inputSchema = (debouncedValidator: (value: string) => Promise<boolean>) =>
   v.objectAsync({
     name: v.pipe(v.string(), v.minLength(1, 'This field is required')),
     email: v.pipeAsync(
       v.string(),
       v.minLength(1, 'This field is required'),
       v.email('Please enter a valid email format'),
-      v.checkAsync(debouncedCheck, 'This email is not available')
+      v.checkAsync(debouncedValidator, 'This email is not available')
     ),
   });
 
@@ -28,11 +28,11 @@ export function useSignupForm() {
     return !data.result;
   };
 
-  const { debouncedCheck } = useDebouncedValidator<string>(isValidEmail, {
+  const { debouncedValidator } = useDebouncedValidator<string>(isValidEmail, {
     delay: 500,
   });
 
-  const schema = inputSchema(debouncedCheck);
+  const schema = inputSchema(debouncedValidator);
 
   const form = useForm({
     mode: 'all',

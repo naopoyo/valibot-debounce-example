@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type CheckFn<T> = (value: T) => Promise<boolean> | boolean;
+type ValidateFn<T> = (value: T) => Promise<boolean> | boolean;
 
 type Options<T> = {
   delay?: number;
@@ -9,7 +9,7 @@ type Options<T> = {
 };
 
 /**
- * A performant and secure debounced checker hook that batches consecutive calls,
+ * A performant and secure debounced validator hook that batches consecutive calls,
  * ensures all promises resolve with the final result, and prevents race conditions.
  *
  * This hook is designed for scenarios like form validation or API checks where
@@ -17,33 +17,33 @@ type Options<T> = {
  * It caches results for identical values and handles asynchronous checks efficiently.
  *
  * Key features:
- * - Debounces checks within the specified delay to reduce unnecessary operations.
+ * - Debounces validations within the specified delay to reduce unnecessary operations.
  * - Caches the last result for identical values to improve performance.
  * - Batches multiple calls during the debounce period and resolves all with the final result.
  * - Prevents race conditions by ensuring only the latest value is processed.
  * - Includes robust error handling and automatic cleanup to prevent memory leaks.
  * - Supports negation of results and default values for common use cases.
  *
- * @typeParam T - The type of the value to be checked. Defaults to `string`.
- * @param check - A function that performs the check on the value. It can be synchronous or asynchronous.
+ * @typeParam T - The type of the value to be validated. Defaults to `string`.
+ * @param validate - A function that performs the validation on the value. It can be synchronous or asynchronous.
  *   The function should return `true` for valid values and `false` otherwise.
  * @param options - Configuration options for the hook.
  * @param options.delay - The debounce delay in milliseconds. Defaults to 500ms.
  *   Shorter delays improve responsiveness but may increase computation.
- * @param options.negate - If `true`, negates the result of the check function. Useful for inverting logic. Defaults to `false`.
- * @param options.defaultValue - A default value that always returns `true` immediately without calling the check function.
- *   Useful for skipping checks on initial or placeholder values.
+ * @param options.negate - If `true`, negates the result of the validate function. Useful for inverting logic. Defaults to `false`.
+ * @param options.defaultValue - A default value that always returns `true` immediately without calling the validate function.
+ *   Useful for skipping validations on initial or placeholder values.
  * @returns An object containing:
- *   - `debouncedCheck`: A debounced function that takes a value of type `T` and returns a `Promise<boolean>`.
- *     Call this function to perform the debounced check.
- *   - `lastResult`: The most recent result of the check, updated reactively.
+ *   - `debouncedValidator`: A debounced function that takes a value of type `T` and returns a `Promise<boolean>`.
+ *     Call this function to perform the debounced validation.
+ *   - `lastResult`: The most recent result of the validation, updated reactively.
  *
  * @example
  * ```typescript
- * import { useDebouncedCheck } from './hooks/use-debounce-check';
+ * import { useDebouncedValidator } from './hooks/use-debounced-validator';
  *
  * function UsernameChecker() {
- *   const { debouncedCheck, lastResult } = useDebouncedCheck(
+ *   const { debouncedValidator, lastResult } = useDebouncedValidator(
  *     async (username: string) => {
  *       // Simulate API call to check username availability
  *       const response = await fetch(`/api/check-username?username=${username}`);
@@ -53,7 +53,7 @@ type Options<T> = {
  *   );
  *
  *   const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
- *     const isAvailable = await debouncedCheck(event.target.value);
+ *     const isAvailable = await debouncedValidator(event.target.value);
  *     console.log('Username available:', isAvailable);
  *   };
  *
@@ -68,12 +68,15 @@ type Options<T> = {
  *
  * @remarks
  * - The hook automatically cleans up timers and resolves pending promises on unmount to prevent memory leaks.
- * - If the check function throws an error, it logs the error and returns `false`.
+ * - If the validate function throws an error, it logs the error and returns `false`.
  * - For performance, identical values are cached and returned immediately if no debounce is pending.
  * - Be cautious with object values for `T`; equality checks use `===`, which may not work as expected for objects.
  * - This hook is optimized for React and uses refs to avoid unnecessary re-renders.
  */
-export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Options<T> = {}) {
+export function useDebouncedValidator<T = string>(
+  validate: ValidateFn<T>,
+  options: Options<T> = {}
+) {
   const { delay = 500, negate = false, defaultValue } = options;
 
   const [lastResult, setLastResult] = useState(false);
@@ -88,7 +91,7 @@ export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Op
     resolvers.forEach((resolve) => resolve(result));
   };
 
-  const debouncedCheck = useCallback(
+  const debouncedValidator = useCallback(
     (value: T): Promise<boolean> => {
       if (value === defaultValue) {
         return Promise.resolve(true);
@@ -115,7 +118,7 @@ export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Op
           }
 
           try {
-            const rawResult = await Promise.resolve(check(currentValue));
+            const rawResult = await Promise.resolve(validate(currentValue));
             const result = negate ? !rawResult : rawResult;
 
             lastValueRef.current = currentValue;
@@ -123,7 +126,7 @@ export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Op
             setLastResult(result);
             flushResolvers(result);
           } catch (error) {
-            console.error('Debounced check failed:', error);
+            console.error('Debounced validation failed:', error);
             const result = false;
             lastResultRef.current = result;
             setLastResult(result);
@@ -132,7 +135,7 @@ export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Op
         }, delay);
       });
     },
-    [check, delay, negate, defaultValue]
+    [validate, delay, negate, defaultValue]
   );
 
   useEffect(() => {
@@ -145,5 +148,5 @@ export function useDebouncedValidator<T = string>(check: CheckFn<T>, options: Op
     };
   }, []);
 
-  return { debouncedCheck, lastResult } as const;
+  return { debouncedValidator, lastResult } as const;
 }
