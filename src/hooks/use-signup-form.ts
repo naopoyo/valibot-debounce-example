@@ -21,9 +21,9 @@ export type Inputs = v.InferOutput<ReturnType<typeof inputSchema>>;
 
 export function useSignupForm() {
   const isValidEmail = async (value: string) => {
-    const response = await fetch('/api?email=' + encodeURIComponent(value), {
-      method: 'GET',
-    });
+    const url = new URL('/api', window.location.origin);
+    url.searchParams.set('email', value);
+    const response = await fetch(url);
     const data = (await response.json()) as { result: boolean };
     return !data.result;
   };
