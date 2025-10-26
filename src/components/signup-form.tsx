@@ -1,3 +1,5 @@
+'use client';
+
 export function SignupForm() {
   return (
     <form className="flex flex-col gap-4">
