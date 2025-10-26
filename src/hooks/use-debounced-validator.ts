@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type ValidateFn<T> = (value: T) => Promise<boolean> | boolean;
