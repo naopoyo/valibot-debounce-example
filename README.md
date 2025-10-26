@@ -30,7 +30,7 @@ This is a Next.js example project demonstrating form validation with Valibot and
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:naopoyo/valibot-debounce-example.git
    cd valibot-debounce-example
    ```
 

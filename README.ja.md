@@ -30,7 +30,7 @@
 1. リポジトリをクローン:
 
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:naopoyo/valibot-debounce-example.git
    cd valibot-debounce-example
    ```
 
