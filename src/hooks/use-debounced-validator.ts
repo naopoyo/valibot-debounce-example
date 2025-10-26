@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type ValidateFn<T> = (value: T) => Promise<boolean> | boolean;
 
@@ -42,11 +42,11 @@ type Options<T> = {
  * ```typescript
  * import { useDebouncedValidator } from './hooks/use-debounced-validator';
  *
- * function UsernameChecker() {
+ * function EmailChecker() {
  *   const { debouncedValidator, lastResult } = useDebouncedValidator(
- *     async (username: string) => {
- *       // Simulate API call to check username availability
- *       const response = await fetch(`/api/check-username?username=${username}`);
+ *     async (email: string) => {
+ *       // Simulate API call to check email availability
+ *       const response = await fetch(`/api/check-email?email=${email}`);
  *       return response.ok;
  *     },
  *     { delay: 300, defaultValue: '' }
@@ -54,12 +54,12 @@ type Options<T> = {
  *
  *   const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
  *     const isAvailable = await debouncedValidator(event.target.value);
- *     console.log('Username available:', isAvailable);
+ *     console.log('Email available:', isAvailable);
  *   };
  *
  *   return (
  *     <div>
- *       <input onChange={handleInputChange} placeholder="Enter username" />
+ *       <input onChange={handleInputChange} placeholder="Enter email" />
  *       <p>Available: {lastResult ? 'Yes' : 'No'}</p>
  *     </div>
  *   );
@@ -77,7 +77,8 @@ export function useDebouncedValidator<T = string>(
   validate: ValidateFn<T>,
   options: Options<T> = {}
 ) {
-  const { delay = 500, negate = false, defaultValue } = options;
+  const memoizedOptions = useMemo(() => options, [options]);
+  const { delay = 500, negate = false, defaultValue } = memoizedOptions;
 
   const [lastResult, setLastResult] = useState(false);
   const lastValueRef = useRef<T | undefined>(defaultValue);
@@ -99,22 +100,26 @@ export function useDebouncedValidator<T = string>(
 
         lastValueRef.current = currentValue;
         lastResultRef.current = result;
-        setLastResult(result);
+        if (lastResult !== result) {
+          setLastResult(result);
+        }
         flushResolvers(result);
       } catch {
         const result = false;
         lastValueRef.current = currentValue;
         lastResultRef.current = result;
-        setLastResult(result);
+        if (lastResult !== result) {
+          setLastResult(result);
+        }
         flushResolvers(result);
       }
     },
-    [validate, negate]
+    [validate, negate, lastResult]
   );
 
   const debouncedValidator = useCallback(
     (value: T): Promise<boolean> => {
-      if (value === defaultValue) {
+      if (Object.is(value, defaultValue)) {
         return Promise.resolve(true);
       }
 
