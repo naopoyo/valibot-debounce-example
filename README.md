@@ -1,14 +1,15 @@
 # Valibot Debounce Example
 
-This is a Next.js example project demonstrating form validation with Valibot and debounced email availability checking.
+This is a Next.js example project demonstrating form validation with Valibot and a custom debounced validator hook for email availability checking.
 
 ## Features
 
 - **Form Validation**: Uses Valibot for schema-based validation with React Hook Form
-- **Debounced Checks**: Implements debounced API calls to check email availability
+- **Debounced Validator Hook**: Custom `useDebouncedValidator` hook for debounced API calls with caching, error handling, and race condition prevention
 - **Real-time Feedback**: Provides immediate validation feedback as users type
 - **TypeScript**: Fully typed with TypeScript
 - **Tailwind CSS**: Styled with Tailwind CSS for responsive design
+- **Comprehensive Testing**: Unit tests with Vitest and coverage reporting
 
 ## Tech Stack
 
@@ -17,6 +18,7 @@ This is a Next.js example project demonstrating form validation with Valibot and
 - [React Hook Form](https://react-hook-form.com) - Form handling
 - [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS framework
 - [TypeScript](https://www.typescriptlang.org) - Type-safe JavaScript
+- [Vitest](https://vitest.dev) - Unit testing framework
 
 ## Getting Started
 
@@ -85,8 +87,12 @@ src/
 ├── components/
 │   └── signup-form.tsx       # Signup form component
 └── hooks/
-    ├── use-debounce-check.ts # Custom hook for debounced checks
-    └── use-signup-form.ts    # Form logic with validation
+    ├── __test__/
+    │   └── use-debounced-validator.test.ts # Unit tests for debounced validator hook
+    ├── use-debounced-validator.ts      # Custom hook for debounced validation
+    └── use-signup-form.ts              # Form logic with validation
+docs/
+└── test-review.md            # Test case review documentation
 ```
 
 ## Scripts
@@ -94,7 +100,27 @@ src/
 - `pnpm dev` - Start development server
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
+- `pnpm test` - Run tests with Vitest
+- `pnpm test:run` - Run tests once
+- `pnpm test:coverage` - Run tests with coverage report
 - `pnpm lint` - Run ESLint
 - `pnpm lint:fix` - Fix ESLint issues
 - `pnpm prettier` - Format code with Prettier
 - `pnpm format` - Format and fix linting issues
+- `pnpm ncu` - Check for dependency updates
+
+## Testing
+
+Run the test suite:
+
+```bash
+pnpm test
+```
+
+Generate coverage report:
+
+```bash
+pnpm test:coverage
+```
+
+The test suite covers the `useDebouncedValidator` hook with 23 test cases, including debounce behavior, caching, error handling, and edge cases. See `docs/test-review.md` for detailed test case reviews.

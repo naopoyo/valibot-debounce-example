@@ -1,14 +1,15 @@
 # Valibot デバウンス例
 
-これは、Valibotとデバウンスされたメール可用性チェックを使ったフォームバリデーションを実演するNext.jsのサンプルプロジェクトです。
+これは、Valibotとカスタムデバウンスバリデーターhookを使ったメール可用性チェックによるフォームバリデーションを実演するNext.jsのサンプルプロジェクトです。
 
 ## 機能
 
 - **フォームバリデーション**: React Hook FormとValibotを使ってスキーマベースのバリデーションを行います
-- **デバウンスチェック**: メール可用性をチェックするためのデバウンスされたAPI呼び出しを実装します
+- **デバウンスバリデーターHook**: キャッシュ、エラーハンドリング、race condition防止を備えたカスタム`useDebouncedValidator` hook
 - **リアルタイムフィードバック**: ユーザーが入力中に即時のバリデーションフィードバックを提供します
 - **TypeScript**: TypeScriptで完全に型付けされています
 - **Tailwind CSS**: レスポンシブデザインのためのTailwind CSSでスタイル付けされています
+- **包括的なテスト**: Vitestを使ったユニットテストとカバレッジレポート
 
 ## 技術スタック
 
@@ -17,6 +18,7 @@
 - [React Hook Form](https://react-hook-form.com) - フォーム処理
 - [Tailwind CSS](https://tailwindcss.com) - ユーティリティファーストのCSSフレームワーク
 - [TypeScript](https://www.typescriptlang.org) - 型安全なJavaScript
+- [Vitest](https://vitest.dev) - ユニットテストフレームワーク
 
 ## はじめに
 
@@ -85,8 +87,12 @@ src/
 ├── components/
 │   └── signup-form.tsx       # サインアップフォームコンポーネント
 └── hooks/
-    ├── use-debounce-check.ts # デバウンスチェック用のカスタムフック
-    └── use-signup-form.ts    # バリデーション付きのフォームロジック
+    ├── __test__/
+    │   └── use-debounced-validator.test.ts # デバウンスバリデーターhookのユニットテスト
+    ├── use-debounced-validator.ts      # デバウンスバリデーション用のカスタムhook
+    └── use-signup-form.ts              # バリデーション付きのフォームロジック
+docs/
+└── test-review.md            # テストケースレビュードキュメント
 ```
 
 ## スクリプト
@@ -94,7 +100,27 @@ src/
 - `pnpm dev` - 開発サーバーを起動
 - `pnpm build` - 本番用にビルド
 - `pnpm start` - 本番サーバーを起動
+- `pnpm test` - Vitestでテストを実行
+- `pnpm test:run` - テストを一度実行
+- `pnpm test:coverage` - カバレッジレポート付きでテストを実行
 - `pnpm lint` - ESLintを実行
 - `pnpm lint:fix` - ESLintの問題を修正
 - `pnpm prettier` - Prettierでコードをフォーマット
 - `pnpm format` - フォーマットとlintの問題を修正
+- `pnpm ncu` - 依存関係の更新を確認
+
+## テスト
+
+テストスイートを実行:
+
+```bash
+pnpm test
+```
+
+カバレッジレポートを生成:
+
+```bash
+pnpm test:coverage
+```
+
+テストスイートは`useDebouncedValidator` hookに対して23個のテストケースをカバーしており、デバウンス動作、キャッシュ、エラーハンドリング、edge casesを含みます。詳細は`docs/test-review.md`を参照してください。
