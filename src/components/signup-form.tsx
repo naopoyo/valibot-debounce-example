@@ -4,9 +4,13 @@ import { useSignupForm } from '@/hooks/use-signup-form';
 
 export function SignupForm() {
   const form = useSignupForm();
+  const handleSubmit = form.handleSubmit((data) => {
+    alert(JSON.stringify(data, null, 2));
+  });
+  const disabled = !form.formState.isValid || form.formState.isSubmitting;
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(() => alert('Submitted!'))}>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <label className="flex flex-col gap-1">
         <span
           className={`
@@ -64,7 +68,7 @@ export function SignupForm() {
 
       <button
         type="submit"
-        disabled={!form.formState.isValid || form.formState.isSubmitting}
+        disabled={disabled}
         className={`
           rounded bg-blue-600 px-4 py-2 text-white
           hover:bg-blue-700
