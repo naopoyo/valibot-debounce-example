@@ -12,6 +12,7 @@ export const inputSchema = (debouncedCheck: (value: string) => Promise<boolean>)
     email: v.pipeAsync(
       v.string(),
       v.minLength(1, '必須項目です'),
+      v.email('正しいEmail形式で入力してください'),
       v.checkAsync(debouncedCheck, 'このEmailは使用できません。')
     ),
   });
@@ -24,7 +25,7 @@ export default function useSignupForm() {
       method: 'GET',
     });
     const data = (await response.json()) as { result: boolean };
-    return data.result === false;
+    return data.result === true;
   };
 
   const { debouncedCheck } = useDebouncedCheck<string>(isInvalidEmail, {
