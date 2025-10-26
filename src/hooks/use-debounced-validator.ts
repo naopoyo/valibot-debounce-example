@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-type ValidateFn<T> = (value: T) => Promise<boolean> | boolean;
+type ValidateResult = boolean | Promise<boolean>;
+
+type ValidateFn<T> = (value: T) => ValidateResult;
 
 type Options<T> = {
   delay?: number;
   negate?: boolean;
   defaultValue?: T | undefined;
+  maxCacheSize?: number;
 };
 
 /**
@@ -35,6 +38,8 @@ type Options<T> = {
  * @param options.negate - If `true`, negates the result of the validate function. Useful for inverting logic. Defaults to `false`.
  * @param options.defaultValue - A default value that always returns `true` immediately without calling the validate function.
  *   Useful for skipping validations on initial or placeholder values.
+ * @param options.maxCacheSize - The maximum number of cached results. Defaults to 100.
+ *   Prevents memory leaks in long-running applications by limiting cache size.
  * @returns An object containing:
  *   - `debouncedValidator`: A debounced function that takes a value of type `T` and returns a `Promise<boolean>`.
  *     Call this function to perform the debounced validation.
@@ -72,6 +77,7 @@ type Options<T> = {
  * - The hook automatically cleans up timers and resolves pending promises on unmount to prevent memory leaks.
  * - If the validate function throws an error, it logs the error and returns `false`.
  * - For performance, identical values are cached and returned immediately if no debounce is pending.
+ * - Cache size is limited to prevent memory leaks; oldest entries are removed when the limit is exceeded.
  * - Be cautious with object values for `T`; equality checks use `===`, which may not work as expected for objects.
  * - This hook is optimized for React and uses refs to avoid unnecessary re-renders.
  */
@@ -80,7 +86,7 @@ export function useDebouncedValidator<T = string>(
   options: Options<T> = {}
 ) {
   const memoizedOptions = useMemo(() => options, [options]);
-  const { delay = 500, negate = false, defaultValue } = memoizedOptions;
+  const { delay = 500, negate = false, defaultValue, maxCacheSize = 100 } = memoizedOptions;
 
   const [lastResult, setLastResult] = useState(false);
   const cacheRef = useRef(new Map<T, boolean>());
@@ -97,23 +103,42 @@ export function useDebouncedValidator<T = string>(
     async (currentValue: T) => {
       try {
         const rawResult = await validate(currentValue);
-        const result = negate ? !Boolean(rawResult) : Boolean(rawResult);
+        const result = Boolean(rawResult);
+
+        // Limit cache size
+        if (cacheRef.current.size >= maxCacheSize) {
+          const firstKey = cacheRef.current.keys().next().value;
+          if (firstKey !== undefined) {
+            cacheRef.current.delete(firstKey);
+          }
+        }
 
         cacheRef.current.set(currentValue, result);
-        if (lastResult !== result) {
-          setLastResult(result);
+        const finalResult = negate ? !result : result;
+        if (lastResult !== finalResult) {
+          setLastResult(finalResult);
         }
-        flushResolvers(result);
+        flushResolvers(finalResult);
       } catch {
         const result = false;
-        cacheRef.current.set(currentValue, result);
-        if (lastResult !== result) {
-          setLastResult(result);
+
+        // Limit cache size
+        if (cacheRef.current.size >= maxCacheSize) {
+          const firstKey = cacheRef.current.keys().next().value;
+          if (firstKey !== undefined) {
+            cacheRef.current.delete(firstKey);
+          }
         }
-        flushResolvers(result);
+
+        cacheRef.current.set(currentValue, result);
+        const finalResult = negate ? !result : result;
+        if (lastResult !== finalResult) {
+          setLastResult(finalResult);
+        }
+        flushResolvers(finalResult);
       }
     },
-    [validate, negate, lastResult]
+    [validate, negate, lastResult, maxCacheSize]
   );
 
   const debouncedValidator = useCallback(
@@ -123,7 +148,8 @@ export function useDebouncedValidator<T = string>(
       }
 
       if (cacheRef.current.has(value)) {
-        return Promise.resolve(cacheRef.current.get(value)!);
+        const cachedResult = cacheRef.current.get(value)!;
+        return Promise.resolve(negate ? !cachedResult : cachedResult);
       }
 
       return new Promise<boolean>((resolve) => {
@@ -146,7 +172,7 @@ export function useDebouncedValidator<T = string>(
         }, delay);
       });
     },
-    [delay, defaultValue, performValidation]
+    [delay, defaultValue, performValidation, negate]
   );
 
   useEffect(() => {

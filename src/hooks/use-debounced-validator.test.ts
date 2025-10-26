@@ -187,6 +187,61 @@ describe('useDebouncedValidator', () => {
       expect(validate).toHaveBeenCalledWith('test');
       expect(await promise).toBe(false);
     });
+
+    /**
+     * Verifies that cache size is limited and old entries are removed.
+     */
+    it('should limit cache size and remove old entries', async () => {
+      const validate = vi.fn().mockResolvedValue(true);
+      const { result } = renderHook(() =>
+        useDebouncedValidator(validate, { delay: 100, maxCacheSize: 2 })
+      );
+
+      // Add first value
+      const promise1 = result.current.debouncedValidator('value1');
+      vi.advanceTimersByTime(100);
+      await promise1;
+      expect(validate).toHaveBeenCalledTimes(1);
+
+      // Add second value
+      const promise2 = result.current.debouncedValidator('value2');
+      vi.advanceTimersByTime(100);
+      await promise2;
+      expect(validate).toHaveBeenCalledTimes(2);
+
+      // Add third value - should remove first
+      const promise3 = result.current.debouncedValidator('value3');
+      vi.advanceTimersByTime(100);
+      await promise3;
+      expect(validate).toHaveBeenCalledTimes(3);
+
+      // First value should be removed from cache, so validation is called again
+      const promise4 = result.current.debouncedValidator('value1');
+      vi.advanceTimersByTime(100);
+      await promise4;
+      expect(validate).toHaveBeenCalledTimes(4);
+    });
+
+    /**
+     * Verifies that negate works correctly with cached results.
+     */
+    it('should apply negate to cached results', async () => {
+      const validate = vi.fn().mockResolvedValue(true);
+      const { result } = renderHook(() =>
+        useDebouncedValidator(validate, { delay: 100, negate: true })
+      );
+
+      // First call
+      const promise1 = result.current.debouncedValidator('test');
+      vi.advanceTimersByTime(100);
+      expect(await promise1).toBe(false);
+      expect(validate).toHaveBeenCalledTimes(1);
+
+      // Second call - should use cache and negate
+      const promise2 = result.current.debouncedValidator('test');
+      expect(await promise2).toBe(false);
+      expect(validate).toHaveBeenCalledTimes(1); // Not called again
+    });
   });
 
   describe('Error handling and edge cases', () => {
