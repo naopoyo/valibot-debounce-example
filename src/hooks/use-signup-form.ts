@@ -28,9 +28,7 @@ export function useSignupForm() {
     return !data.result;
   };
 
-  const { debouncedValidator } = useDebouncedValidator<string>(isValidEmail, {
-    delay: 500,
-  });
+  const { debouncedValidator } = useDebouncedValidator<string>(isValidEmail);
 
   const schema = inputSchema(debouncedValidator);
 
