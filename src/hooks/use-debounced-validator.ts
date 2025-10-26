@@ -5,7 +5,7 @@ type ValidateFn<T> = (value: T) => Promise<boolean> | boolean;
 type Options<T> = {
   delay?: number;
   negate?: boolean;
-  defaultValue?: T;
+  defaultValue?: T | undefined;
 };
 
 /**
@@ -91,6 +91,27 @@ export function useDebouncedValidator<T = string>(
     resolvers.forEach((resolve) => resolve(result));
   };
 
+  const performValidation = useCallback(
+    async (currentValue: T) => {
+      try {
+        const rawResult = await validate(currentValue);
+        const result = negate ? !rawResult : rawResult;
+
+        lastValueRef.current = currentValue;
+        lastResultRef.current = result;
+        setLastResult(result);
+        flushResolvers(result);
+      } catch {
+        const result = false;
+        lastValueRef.current = currentValue;
+        lastResultRef.current = result;
+        setLastResult(result);
+        flushResolvers(result);
+      }
+    },
+    [validate, negate]
+  );
+
   const debouncedValidator = useCallback(
     (value: T): Promise<boolean> => {
       if (value === defaultValue) {
@@ -117,25 +138,11 @@ export function useDebouncedValidator<T = string>(
             return;
           }
 
-          try {
-            const rawResult = await Promise.resolve(validate(currentValue));
-            const result = negate ? !rawResult : rawResult;
-
-            lastValueRef.current = currentValue;
-            lastResultRef.current = result;
-            setLastResult(result);
-            flushResolvers(result);
-          } catch (error) {
-            console.error('Debounced validation failed:', error);
-            const result = false;
-            lastResultRef.current = result;
-            setLastResult(result);
-            flushResolvers(result);
-          }
+          await performValidation(currentValue);
         }, delay);
       });
     },
-    [validate, delay, negate, defaultValue]
+    [delay, defaultValue, performValidation]
   );
 
   useEffect(() => {
