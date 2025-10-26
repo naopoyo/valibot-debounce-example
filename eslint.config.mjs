@@ -20,12 +20,10 @@ const eslintConfig = defineConfig([
   ]),
   {
     plugins: {
-      'better-tailwindcss': eslintPluginBetterTailwindcss,
       import: eslintPluginImport,
       'unused-imports': eslintPluginUnusedImports,
     },
     rules: {
-      ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
       'better-tailwindcss/no-unregistered-classes': ['error', { detectComponentClasses: true }],
       'unused-imports/no-unused-imports': 'error',
       'import/order': [
@@ -48,6 +46,20 @@ const eslintConfig = defineConfig([
     settings: {
       'better-tailwindcss': {
         entryPoint: 'src/styles/globals.css',
+      },
+    },
+  },
+  {
+    plugins: {
+      'better-tailwindcss': eslintPluginBetterTailwindcss,
+    },
+    rules: {
+      ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
+      'better-tailwindcss/no-unregistered-classes': ['error', { detectComponentClasses: true }],
+    },
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'src/app/globals.css',
       },
     },
   },
