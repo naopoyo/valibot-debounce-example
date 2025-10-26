@@ -425,6 +425,26 @@ describe('useDebouncedValidator', () => {
 
         expect(clearTimeoutSpy).not.toHaveBeenCalled();
       });
+
+      /**
+       * Verifies that lastResult updates reactively with negate option.
+       */
+      it('should update lastResult reactively with negate when result changes', async () => {
+        const validate = vi.fn().mockResolvedValue(false);
+        const { result } = renderHook(() =>
+          useDebouncedValidator(validate, { delay: 100, negate: true })
+        );
+
+        expect(result.current.lastResult).toBe(false);
+
+        await act(async () => {
+          const promise = result.current.debouncedValidator('test');
+          vi.advanceTimersByTime(100);
+          await promise;
+        });
+
+        expect(result.current.lastResult).toBe(true); // negate=true so false becomes true
+      });
     });
   });
 });
