@@ -1,6 +1,6 @@
 'use client';
 
-import useSignupForm from '@/hooks/use-signup-form';
+import { useSignupForm } from '@/hooks/use-signup-form';
 
 export function SignupForm() {
   const form = useSignupForm();

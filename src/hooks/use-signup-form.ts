@@ -19,7 +19,7 @@ export const inputSchema = (debouncedCheck: (value: string) => Promise<boolean>)
 
 export type Inputs = v.InferOutput<ReturnType<typeof inputSchema>>;
 
-export default function useSignupForm() {
+export function useSignupForm() {
   const isInvalidEmail = async (value: string) => {
     const response = await fetch('/api?email=' + encodeURIComponent(value), {
       method: 'GET',
