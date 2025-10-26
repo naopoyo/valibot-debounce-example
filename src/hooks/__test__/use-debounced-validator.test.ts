@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { useDebouncedValidator } from './use-debounced-validator';
+import { useDebouncedValidator } from '../use-debounced-validator';
 
 /**
  * Test suite for useDebouncedValidator hook.
