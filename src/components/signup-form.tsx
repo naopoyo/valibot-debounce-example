@@ -1,8 +1,12 @@
 'use client';
 
+import useSignupForm from '@/hooks/use-signup-form';
+
 export function SignupForm() {
+  const form = useSignupForm();
+
   return (
-    <form className="flex flex-col gap-4">
+    <form className="flex flex-col gap-4" onSubmit={form.handleSubmit((data) => console.log(data))}>
       <label className="flex flex-col gap-1">
         <span
           className={`
@@ -14,7 +18,6 @@ export function SignupForm() {
         </span>
         <input
           type="text"
-          name="name"
           className={`
             rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900
             shadow-sm
@@ -25,7 +28,11 @@ export function SignupForm() {
             dark:placeholder:text-zinc-500
           `}
           placeholder="Your Name"
+          {...form.register('name')}
         />
+        {form.formState.errors.name && (
+          <span className="text-red-500">{form.formState.errors.name.message}</span>
+        )}
       </label>
       <label className="flex flex-col gap-1">
         <span
@@ -38,7 +45,6 @@ export function SignupForm() {
         </span>
         <input
           type="email"
-          name="email"
           className={`
             rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900
             shadow-sm
@@ -49,16 +55,22 @@ export function SignupForm() {
             dark:placeholder:text-zinc-500
           `}
           placeholder="you@example.com"
+          {...form.register('email')}
         />
+        {form.formState.errors.email && (
+          <span className="text-red-500">{form.formState.errors.email.message}</span>
+        )}
       </label>
 
       <button
         type="submit"
+        disabled={!form.formState.isValid || form.formState.isSubmitting}
         className={`
           rounded bg-blue-600 px-4 py-2 text-white
           hover:bg-blue-700
           focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           focus:outline-none
+          disabled:cursor-not-allowed disabled:bg-blue-300
         `}
       >
         Sign Up
